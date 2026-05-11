@@ -1,0 +1,91 @@
+name: Build and Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_override:
+        description: 'Optional version override (e.g. 1.2.3). Leave empty to auto-detect'
+        required: false
+        default: ''
+      prerelease:
+        description: 'Mark as pre-release?'
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      # ── Step 1: Build stubs ──────────────────────────────────────────
+      - name: Build stubs
+        run: |
+          echo "::group::Building Assembly-CSharp stub"
+          dotnet build .github/ci/stubs/Assembly-CSharp/Assembly-CSharp.csproj -c Release
+          echo "::endgroup::"
+
+          echo "::group::Building Mirage stub"
+          dotnet build .github/ci/stubs/Mirage/Mirage.csproj -c Release
+          echo "::endgroup::"
+
+      # ── Step 2: Detect version ───────────────────────────────────────
+      - name: Detect version
+        id: version
+        shell: bash
+        run: |
+          if [ -n "${{ github.event.inputs.version_override }}" ]; then
+            VER="${{ github.event.inputs.version_override }}"
+          else
+            # Extract <Version> from CI csproj
+            VER=$(grep -oP '(?<=<Version>)[^<]+' .github/ci/ThirdPersonHUD.CI.csproj | head -1)
+            if [ -z "$VER" ]; then
+              # Fallback: extract VersionString from plugin source
+              VER=$(grep -oP '(?<=VersionString = ")[^"]+' ThirdPersonHUDPlugin.cs | head -1)
+            fi
+            if [ -z "$VER" ]; then
+              echo "::error::Could not detect version from csproj or source"
+              exit 1
+            fi
+          fi
+          echo "VERSION=$VER" >> "$GITHUB_OUTPUT"
+          echo "Detected version: $VER"
+
+      # ── Step 3: Build mod using CI csproj ────────────────────────────
+      - name: Build mod (Release)
+        run: dotnet build .github/ci/ThirdPersonHUD.CI.csproj -c Release
+
+      # ── Step 4: Package ──────────────────────────────────────────────
+      - name: Package artifacts
+        run: |
+          mkdir -p artifact
+          cp bin/Release/ThirdPersonHUD.dll artifact/
+          [ -f bin/Release/ThirdPersonHUD.pdb ] && cp bin/Release/ThirdPersonHUD.pdb artifact/
+          cd artifact && zip -r "../ThirdPersonHUD-v${{ steps.version.outputs.VERSION }}.zip" .
+
+      # ── Step 5: Release ──────────────────────────────────────────────
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.version.outputs.VERSION }}
+          name: ThirdPersonHUD v${{ steps.version.outputs.VERSION }}
+          body: |
+            ## ThirdPersonHUD v${{ steps.version.outputs.VERSION }}
+
+            ### Installation
+            1. Download `ThirdPersonHUD-v${{ steps.version.outputs.VERSION }}.zip`
+            2. Extract into `BepInEx/plugins/ThirdPersonHUD/`
+            3. Launch Nuclear Option
+          prerelease: ${{ github.event.inputs.prerelease }}
+          files: |
+            ThirdPersonHUD-v${{ steps.version.outputs.VERSION }}.zip
+            artifact/ThirdPersonHUD.dll
+          generate_release_notes: true
