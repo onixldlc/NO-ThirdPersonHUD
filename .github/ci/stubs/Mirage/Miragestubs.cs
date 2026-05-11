@@ -1,11 +1,13 @@
 // =============================================================================
 // AUTO-GENERATED STUB — DO NOT ADD GAME LOGIC
 // =============================================================================
-// Mirage networking library stub. Only the namespace needs to exist so that
-// `using Mirage;` compiles.
+// Mirage networking library stub. Contains only the type signatures that
+// Assembly-CSharp stubs compile against. No proprietary code.
 // =============================================================================
+
+using UnityEngine;
 
 namespace Mirage
 {
-    public static class MirageStub { }
+    public abstract class NetworkBehaviour : MonoBehaviour { }
 }

@@ -13,4 +13,8 @@
   <ItemGroup>
     <PackageReference Include="UnityEngine.Modules" Version="2022.3.9" />
   </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Mirage\Mirage.csproj" />
+  </ItemGroup>
 </Project>

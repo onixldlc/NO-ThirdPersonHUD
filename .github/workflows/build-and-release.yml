@@ -35,12 +35,12 @@ jobs:
       # ── Step 1: Build stubs ──────────────────────────────────────────
       - name: Build stubs
         run: |
-          echo "::group::Building Assembly-CSharp stub"
-          dotnet build .github/ci/stubs/Assembly-CSharp/Assembly-CSharp.csproj -c Release --configfile .github/ci/NuGet.config
-          echo "::endgroup::"
-
           echo "::group::Building Mirage stub"
           dotnet build .github/ci/stubs/Mirage/Mirage.csproj -c Release --configfile .github/ci/NuGet.config
+          echo "::endgroup::"
+
+          echo "::group::Building Assembly-CSharp stub (depends on Mirage)"
+          dotnet build .github/ci/stubs/Assembly-CSharp/Assembly-CSharp.csproj -c Release --configfile .github/ci/NuGet.config
           echo "::endgroup::"
 
       # ── Step 2: Detect version ───────────────────────────────────────

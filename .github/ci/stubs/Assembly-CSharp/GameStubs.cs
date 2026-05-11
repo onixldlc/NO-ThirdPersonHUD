@@ -4,29 +4,113 @@
 // This file contains ONLY the type signatures that ThirdPersonHUD compiles
 // against. Method bodies are intentionally empty / throw. No proprietary
 // game code is present.
+//
+// Field types, inheritance chains, and virtual/non-virtual must match the
+// real Assembly-CSharp.dll exactly — the CLR resolves fields by name+type
+// and Harmony patches by exact method signature.
 // =============================================================================
 
+using Mirage;
 using UnityEngine;
+
+// ---------------------------------------------------------------------------
+// Interfaces
+// ---------------------------------------------------------------------------
+
+public interface ISceneSingleton
+{
+    bool ClearInstance();
+}
+
+// ---------------------------------------------------------------------------
+// SceneSingleton<T> — note: 'i' is a FIELD, not a property
+// ---------------------------------------------------------------------------
+
+public abstract class SceneSingleton<T> : MonoBehaviour, ISceneSingleton
+    where T : SceneSingleton<T>
+{
+    public static T i;
+
+    public virtual void Awake()
+        => throw new System.NotImplementedException("Stub");
+
+    bool ISceneSingleton.ClearInstance()
+        => throw new System.NotImplementedException("Stub");
+}
 
 // ---------------------------------------------------------------------------
 // Camera system
 // ---------------------------------------------------------------------------
 
-public class CameraBaseState { }
-
-public class CameraStateManager : MonoBehaviour
+public abstract class CameraBaseState
 {
-    public CameraBaseState cockpitState;
-    public CameraBaseState TVState;
-    public CameraBaseState orbitState;
-    public CameraBaseState freeState;
-    public CameraBaseState controlledState;
-    public CameraBaseState chaseState;
+    public abstract void EnterState(CameraStateManager cam);
+    public abstract void LeaveState(CameraStateManager cam);
+    public abstract void UpdateState(CameraStateManager cam);
+    public abstract void FixedUpdateState(CameraStateManager cam);
+}
 
-    public virtual void SwitchState(CameraBaseState state)
+public class CameraCockpitState : CameraBaseState
+{
+    public override void EnterState(CameraStateManager cam) { }
+    public override void LeaveState(CameraStateManager cam) { }
+    public override void UpdateState(CameraStateManager cam) { }
+    public override void FixedUpdateState(CameraStateManager cam) { }
+}
+
+public class CameraOrbitState : CameraBaseState
+{
+    public override void EnterState(CameraStateManager cam) { }
+    public override void LeaveState(CameraStateManager cam) { }
+    public override void UpdateState(CameraStateManager cam) { }
+    public override void FixedUpdateState(CameraStateManager cam) { }
+}
+
+public class CameraTVState : CameraBaseState
+{
+    public override void EnterState(CameraStateManager cam) { }
+    public override void LeaveState(CameraStateManager cam) { }
+    public override void UpdateState(CameraStateManager cam) { }
+    public override void FixedUpdateState(CameraStateManager cam) { }
+}
+
+public class CameraFreeState : CameraBaseState
+{
+    public override void EnterState(CameraStateManager cam) { }
+    public override void LeaveState(CameraStateManager cam) { }
+    public override void UpdateState(CameraStateManager cam) { }
+    public override void FixedUpdateState(CameraStateManager cam) { }
+}
+
+public class CameraChaseState : CameraBaseState
+{
+    public override void EnterState(CameraStateManager cam) { }
+    public override void LeaveState(CameraStateManager cam) { }
+    public override void UpdateState(CameraStateManager cam) { }
+    public override void FixedUpdateState(CameraStateManager cam) { }
+}
+
+public class CameraControlledState : CameraBaseState
+{
+    public override void EnterState(CameraStateManager cam) { }
+    public override void LeaveState(CameraStateManager cam) { }
+    public override void UpdateState(CameraStateManager cam) { }
+    public override void FixedUpdateState(CameraStateManager cam) { }
+}
+
+public class CameraStateManager : SceneSingleton<CameraStateManager>
+{
+    public CameraFreeState freeState;
+    public CameraOrbitState orbitState;
+    public CameraTVState TVState;
+    public CameraCockpitState cockpitState;
+    public CameraChaseState chaseState;
+    public CameraControlledState controlledState;
+
+    public void SwitchState(CameraBaseState state)
         => throw new System.NotImplementedException("Stub");
 
-    public virtual void SetFollowingUnit(Unit unit)
+    public void SetFollowingUnit(Unit unit)
         => throw new System.NotImplementedException("Stub");
 }
 
@@ -34,37 +118,30 @@ public class CameraStateManager : MonoBehaviour
 // Units
 // ---------------------------------------------------------------------------
 
-public class Unit : MonoBehaviour { }
+public class Unit : NetworkBehaviour { }
+
+public class Aircraft : Unit { }
 
 // ---------------------------------------------------------------------------
 // UI
 // ---------------------------------------------------------------------------
 
-public class GameplayUI : MonoBehaviour
+public class GameplayUI : SceneSingleton<GameplayUI>
 {
-    public virtual void ResumeGame()
+    public void ResumeGame()
         => throw new System.NotImplementedException("Stub");
 
-    public virtual void SelectAircraft()
-        => throw new System.NotImplementedException("Stub");
-}
-
-public class DynamicMap : MonoBehaviour
-{
-    public virtual void Minimize()
+    public void SelectAircraft()
         => throw new System.NotImplementedException("Stub");
 }
 
-public class CombatHUD : MonoBehaviour
+public class DynamicMap : SceneSingleton<DynamicMap>
 {
-    public Unit aircraft;
+    public void Minimize()
+        => throw new System.NotImplementedException("Stub");
 }
 
-// ---------------------------------------------------------------------------
-// Utility
-// ---------------------------------------------------------------------------
-
-public class SceneSingleton<T> : MonoBehaviour where T : MonoBehaviour
+public class CombatHUD : SceneSingleton<CombatHUD>
 {
-    public static T i { get; set; }
+    public Aircraft aircraft;
 }
