@@ -5,6 +5,7 @@
     <RootNamespace>ThirdPersonHUD</RootNamespace>
     <Version>1.2.2</Version>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <NoWarn>CS0649;CS0169;CS0414</NoWarn>
     <!-- Output to repo root so workflow can find it easily -->

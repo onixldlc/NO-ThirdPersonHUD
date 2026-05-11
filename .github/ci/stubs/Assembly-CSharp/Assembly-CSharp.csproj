@@ -4,6 +4,7 @@
     <AssemblyName>Assembly-CSharp</AssemblyName>
     <RootNamespace>GameStubs</RootNamespace>
     <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <GenerateTargetFrameworkAttribute>false</GenerateTargetFrameworkAttribute>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <EnableDefaultCompileItems>true</EnableDefaultCompileItems>
     <NoWarn>CS0649;CS0169;CS0414</NoWarn>
