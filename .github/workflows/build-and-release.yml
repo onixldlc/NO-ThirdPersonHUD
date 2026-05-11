@@ -33,11 +33,11 @@ jobs:
       - name: Build stubs
         run: |
           echo "::group::Building Assembly-CSharp stub"
-          dotnet build .github/ci/stubs/Assembly-CSharp/Assembly-CSharp.csproj -c Release
+          dotnet build .github/ci/stubs/Assembly-CSharp/Assembly-CSharp.csproj -c Release --configfile .github/ci/NuGet.config
           echo "::endgroup::"
 
           echo "::group::Building Mirage stub"
-          dotnet build .github/ci/stubs/Mirage/Mirage.csproj -c Release
+          dotnet build .github/ci/stubs/Mirage/Mirage.csproj -c Release --configfile .github/ci/NuGet.config
           echo "::endgroup::"
 
       # ── Step 2: Detect version ───────────────────────────────────────
@@ -64,7 +64,7 @@ jobs:
 
       # ── Step 3: Build mod using CI csproj ────────────────────────────
       - name: Build mod (Release)
-        run: dotnet build .github/ci/ThirdPersonHUD.CI.csproj -c Release
+        run: dotnet build .github/ci/ThirdPersonHUD.CI.csproj -c Release --configfile .github/ci/NuGet.config
 
       # ── Step 4: Package ──────────────────────────────────────────────
       - name: Package artifacts
