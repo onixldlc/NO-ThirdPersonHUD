@@ -1,6 +1,9 @@
 name: Build and Release
 
 on:
+  push:
+    branches:
+      - github-compile
   workflow_dispatch:
     inputs:
       version_override:
