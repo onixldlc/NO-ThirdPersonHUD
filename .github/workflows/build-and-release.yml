@@ -2,8 +2,8 @@ name: Build and Release
 
 on:
   push:
-    branches:
-      - github-compile
+    tags:
+      - 'v*.*.*'
   workflow_dispatch:
     inputs:
       version_override:
@@ -47,6 +47,10 @@ jobs:
         run: |
           if [ -n "${{ github.event.inputs.version_override }}" ]; then
             VER="${{ github.event.inputs.version_override }}"
+          elif [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+            # Strip the leading 'v' from the tag name
+            VER="${{ github.ref_name }}"
+            VER="${VER#v}"
           else
             # Extract <Version> from CI csproj
             VER=$(grep -oP '(?<=<Version>)[^<]+' .github/ci/ThirdPersonHUD.CI.csproj | head -1)
