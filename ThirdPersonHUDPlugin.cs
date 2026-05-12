@@ -160,7 +160,7 @@ namespace ThirdPersonHUD
 
             SetCameraModeFromState(__instance, state);
             ThirdPersonHUD.ApplyHUDVisibility();
-            //ThirdPersonHUD.Log.LogInfo($"\nCamera Mode: {ThirdPersonHUD.currentCameraMode}\nSpectating: {ThirdPersonHUD.isSpectating}");
+            ThirdPersonHUD.Log.LogInfo($"\nCamera Mode: {ThirdPersonHUD.currentCameraMode}\nSpectating: {ThirdPersonHUD.isSpectating}");
         }
 
         private static void SetCameraModeFromState(CameraStateManager camManager, CameraBaseState newState)
