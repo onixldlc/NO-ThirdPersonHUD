@@ -317,16 +317,24 @@ namespace ThirdPersonHUD
             if (!ThirdPersonHUD.Enabled.Value || !ThirdPersonHUD.OrbitUseChasePosition.Value)
                 return;
 
+            if (followVectorField == null || viewDistAdjustField == null)
+            {
+                ThirdPersonHUD.Log.LogWarning($"Orbit override FAILED — followVector field: {(followVectorField != null ? "found" : "NOT FOUND")}, viewDistAdjust field: {(viewDistAdjustField != null ? "found" : "NOT FOUND")}");
+                var allFields = typeof(CameraOrbitState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+                ThirdPersonHUD.Log.LogInfo($"Available fields on CameraOrbitState: {string.Join(", ", allFields.Select(f => $"{f.Name} ({f.FieldType.Name})"))}");
+                return;
+            }
+
             var offset = new Vector3(
                 ThirdPersonHUD.OrbitAnchorOffsetX.Value,
                 ThirdPersonHUD.OrbitAnchorOffsetY.Value,
                 ThirdPersonHUD.OrbitAnchorOffsetZ.Value
             );
 
-            followVectorField?.SetValue(__instance, offset);
-            viewDistAdjustField?.SetValue(__instance, ThirdPersonHUD.OrbitDistance.Value);
+            followVectorField.SetValue(__instance, offset);
+            viewDistAdjustField.SetValue(__instance, ThirdPersonHUD.OrbitDistance.Value);
 
-            ThirdPersonHUD.Log.LogInfo($"Orbit camera override: anchor={offset}, dist={ThirdPersonHUD.OrbitDistance.Value}");
+            ThirdPersonHUD.Log.LogInfo($"Orbit camera override applied: anchor={offset}, dist={ThirdPersonHUD.OrbitDistance.Value}");
         }
     }
 
