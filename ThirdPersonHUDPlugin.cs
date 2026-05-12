@@ -304,52 +304,14 @@ namespace ThirdPersonHUD
         }
     }
 
-    [HarmonyPatch(typeof(CameraOrbitState), nameof(CameraOrbitState.EnterState))]
-    internal static class CameraOrbitState_EnterState_Patch
+    [HarmonyPatch(typeof(CameraOrbitState), nameof(CameraOrbitState.UpdateState))]
+    internal static class CameraOrbitState_UpdateState_Patch
     {
-        static void Postfix(CameraOrbitState __instance)
-        {
-            if (!ThirdPersonHUD.Enabled.Value)
-                return;
-
-            var orbitFields = typeof(CameraOrbitState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-            ThirdPersonHUD.Log.LogInfo($"CameraOrbitState fields: {string.Join(", ", orbitFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(__instance)}"))}");
-
-            var baseFields = typeof(CameraBaseState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-            ThirdPersonHUD.Log.LogInfo($"CameraBaseState fields: {string.Join(", ", baseFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(__instance)}"))}");
-
-            var camManager = __instance.GetType().GetField("camManager", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(__instance);
-            if (camManager != null)
-            {
-                var managerFields = typeof(CameraStateManager).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-                ThirdPersonHUD.Log.LogInfo($"CameraStateManager fields: {string.Join(", ", managerFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(camManager)}"))}");
-            }
-
-            var props = typeof(CameraOrbitState).GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-            ThirdPersonHUD.Log.LogInfo($"CameraOrbitState props: {string.Join(", ", props.Select(p => p.Name))}");
-        }
-    }
-
-    [HarmonyPatch(typeof(CameraStateManager), "LateUpdate")]
-    internal static class CameraStateManager_LateUpdate_Patch
-    {
-        private static readonly FieldInfo followVectorField =
-            typeof(CameraOrbitState).GetField("followVector", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static readonly FieldInfo viewDistAdjustField =
-            typeof(CameraOrbitState).GetField("viewDistAdjust", BindingFlags.NonPublic | BindingFlags.Instance);
-
         private static int logCounter = 0;
 
-        static void Postfix(CameraStateManager __instance)
+        static void Postfix(CameraOrbitState __instance, CameraStateManager cam)
         {
             if (!ThirdPersonHUD.Enabled.Value || !ThirdPersonHUD.OrbitUseChasePosition.Value)
-                return;
-
-            if (ThirdPersonHUD.currentCameraMode != "orbit")
-                return;
-
-            var orbitState = __instance.orbitState;
-            if (orbitState == null)
                 return;
 
             var offset = new Vector3(
@@ -358,32 +320,12 @@ namespace ThirdPersonHUD
                 ThirdPersonHUD.OrbitAnchorOffsetZ.Value
             );
 
-            followVectorField?.SetValue(orbitState, offset);
-            viewDistAdjustField?.SetValue(orbitState, ThirdPersonHUD.OrbitDistance.Value);
+            cam.cameraPivot.localPosition = offset;
 
             logCounter++;
             if (logCounter % 60 == 0)
             {
-                var cam = Camera.main;
-                var curFollow = followVectorField?.GetValue(orbitState);
-                var curDist = viewDistAdjustField?.GetValue(orbitState);
-                ThirdPersonHUD.Log.LogInfo($"Orbit override — set: anchor={offset} dist={ThirdPersonHUD.OrbitDistance.Value} | actual: followVector={curFollow} viewDistAdjust={curDist} | camPos={cam?.transform.position} camFwd={cam?.transform.forward}");
-            }
-
-            if (logCounter == 1)
-            {
-                var orbitFields = typeof(CameraOrbitState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-                ThirdPersonHUD.Log.LogInfo($"=== CameraOrbitState fields: {string.Join(", ", orbitFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(orbitState)}"))}");
-
-                var baseType = typeof(CameraOrbitState).BaseType;
-                if (baseType != null)
-                {
-                    var baseFields = baseType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-                    ThirdPersonHUD.Log.LogInfo($"=== {baseType.Name} fields: {string.Join(", ", baseFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(orbitState)}"))}");
-                }
-
-                var managerFields = typeof(CameraStateManager).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-                ThirdPersonHUD.Log.LogInfo($"=== CameraStateManager fields: {string.Join(", ", managerFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(__instance)}"))}");
+                ThirdPersonHUD.Log.LogInfo($"Orbit anchor offset: pivotLocalPos={cam.cameraPivot.localPosition} camPos={cam.transform.position} camFwd={cam.transform.forward}");
             }
         }
     }
