@@ -369,6 +369,22 @@ namespace ThirdPersonHUD
                 var curDist = viewDistAdjustField?.GetValue(orbitState);
                 ThirdPersonHUD.Log.LogInfo($"Orbit override — set: anchor={offset} dist={ThirdPersonHUD.OrbitDistance.Value} | actual: followVector={curFollow} viewDistAdjust={curDist} | camPos={cam?.transform.position} camFwd={cam?.transform.forward}");
             }
+
+            if (logCounter == 1)
+            {
+                var orbitFields = typeof(CameraOrbitState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+                ThirdPersonHUD.Log.LogInfo($"=== CameraOrbitState fields: {string.Join(", ", orbitFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(orbitState)}"))}");
+
+                var baseType = typeof(CameraOrbitState).BaseType;
+                if (baseType != null)
+                {
+                    var baseFields = baseType.GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+                    ThirdPersonHUD.Log.LogInfo($"=== {baseType.Name} fields: {string.Join(", ", baseFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(orbitState)}"))}");
+                }
+
+                var managerFields = typeof(CameraStateManager).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+                ThirdPersonHUD.Log.LogInfo($"=== CameraStateManager fields: {string.Join(", ", managerFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(__instance)}"))}");
+            }
         }
     }
 
