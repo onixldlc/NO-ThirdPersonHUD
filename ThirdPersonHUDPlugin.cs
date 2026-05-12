@@ -309,7 +309,7 @@ namespace ThirdPersonHUD
     {
         static void Postfix(CameraOrbitState __instance)
         {
-            if (!ThirdPersonHUD.Enabled.Value || !ThirdPersonHUD.OrbitUseChasePosition.Value)
+            if (!ThirdPersonHUD.Enabled.Value)
                 return;
 
             var orbitFields = typeof(CameraOrbitState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
