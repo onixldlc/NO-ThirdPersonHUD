@@ -312,8 +312,21 @@ namespace ThirdPersonHUD
             if (!ThirdPersonHUD.Enabled.Value || !ThirdPersonHUD.OrbitUseChasePosition.Value)
                 return;
 
-            var allFields = typeof(CameraOrbitState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-            ThirdPersonHUD.Log.LogInfo($"CameraOrbitState fields: {string.Join(", ", allFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(__instance)}"))}");
+            var orbitFields = typeof(CameraOrbitState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+            ThirdPersonHUD.Log.LogInfo($"CameraOrbitState fields: {string.Join(", ", orbitFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(__instance)}"))}");
+
+            var baseFields = typeof(CameraBaseState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+            ThirdPersonHUD.Log.LogInfo($"CameraBaseState fields: {string.Join(", ", baseFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(__instance)}"))}");
+
+            var camManager = __instance.GetType().GetField("camManager", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(__instance);
+            if (camManager != null)
+            {
+                var managerFields = typeof(CameraStateManager).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+                ThirdPersonHUD.Log.LogInfo($"CameraStateManager fields: {string.Join(", ", managerFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(camManager)}"))}");
+            }
+
+            var props = typeof(CameraOrbitState).GetProperties(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+            ThirdPersonHUD.Log.LogInfo($"CameraOrbitState props: {string.Join(", ", props.Select(p => p.Name))}");
         }
     }
 
