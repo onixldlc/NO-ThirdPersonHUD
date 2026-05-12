@@ -211,7 +211,20 @@ namespace ThirdPersonHUD
 
             SetCameraModeFromState(__instance, state);
             ThirdPersonHUD.ApplyHUDVisibility();
-            ThirdPersonHUD.Log.LogInfo($"\nCamera Mode: {ThirdPersonHUD.currentCameraMode}\nSpectating: {ThirdPersonHUD.isSpectating}");
+
+            var cam = Camera.main;
+            var craftTransform = __instance.transform.parent;
+            string posInfo = "";
+            string lookInfo = "";
+            if (cam != null)
+            {
+                lookInfo = $"\nLook Direction: {cam.transform.forward}";
+                if (craftTransform != null)
+                    posInfo = $"\nCamera Offset (from craft): {craftTransform.InverseTransformPoint(cam.transform.position)}";
+                else
+                    posInfo = $"\nCamera World Pos: {cam.transform.position}";
+            }
+            ThirdPersonHUD.Log.LogInfo($"\nCamera Mode: {ThirdPersonHUD.currentCameraMode}\nSpectating: {ThirdPersonHUD.isSpectating}{posInfo}{lookInfo}");
         }
 
         private static void SetCameraModeFromState(CameraStateManager camManager, CameraBaseState newState)
