@@ -307,23 +307,30 @@ namespace ThirdPersonHUD
     [HarmonyPatch(typeof(CameraOrbitState), nameof(CameraOrbitState.EnterState))]
     internal static class CameraOrbitState_EnterState_Patch
     {
-        private static readonly FieldInfo followVectorField =
-            typeof(CameraOrbitState).GetField("followVector", BindingFlags.NonPublic | BindingFlags.Instance);
-        private static readonly FieldInfo viewDistAdjustField =
-            typeof(CameraOrbitState).GetField("viewDistAdjust", BindingFlags.NonPublic | BindingFlags.Instance);
-
         static void Postfix(CameraOrbitState __instance)
         {
             if (!ThirdPersonHUD.Enabled.Value || !ThirdPersonHUD.OrbitUseChasePosition.Value)
                 return;
 
-            if (followVectorField == null || viewDistAdjustField == null)
-            {
-                ThirdPersonHUD.Log.LogWarning($"Orbit override FAILED — followVector field: {(followVectorField != null ? "found" : "NOT FOUND")}, viewDistAdjust field: {(viewDistAdjustField != null ? "found" : "NOT FOUND")}");
-                var allFields = typeof(CameraOrbitState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
-                ThirdPersonHUD.Log.LogInfo($"Available fields on CameraOrbitState: {string.Join(", ", allFields.Select(f => $"{f.Name} ({f.FieldType.Name})"))}");
+            var allFields = typeof(CameraOrbitState).GetFields(BindingFlags.NonPublic | BindingFlags.Instance | BindingFlags.Public);
+            ThirdPersonHUD.Log.LogInfo($"CameraOrbitState fields: {string.Join(", ", allFields.Select(f => $"{f.Name} ({f.FieldType.Name})={f.GetValue(__instance)}"))}");
+        }
+    }
+
+    [HarmonyPatch(typeof(CameraOrbitState), "LateUpdate")]
+    internal static class CameraOrbitState_LateUpdate_Patch
+    {
+        private static readonly FieldInfo followVectorField =
+            typeof(CameraOrbitState).GetField("followVector", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly FieldInfo viewDistAdjustField =
+            typeof(CameraOrbitState).GetField("viewDistAdjust", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        private static int logCounter = 0;
+
+        static void Postfix(CameraOrbitState __instance)
+        {
+            if (!ThirdPersonHUD.Enabled.Value || !ThirdPersonHUD.OrbitUseChasePosition.Value)
                 return;
-            }
 
             var offset = new Vector3(
                 ThirdPersonHUD.OrbitAnchorOffsetX.Value,
@@ -331,10 +338,17 @@ namespace ThirdPersonHUD
                 ThirdPersonHUD.OrbitAnchorOffsetZ.Value
             );
 
-            followVectorField.SetValue(__instance, offset);
-            viewDistAdjustField.SetValue(__instance, ThirdPersonHUD.OrbitDistance.Value);
+            followVectorField?.SetValue(__instance, offset);
+            viewDistAdjustField?.SetValue(__instance, ThirdPersonHUD.OrbitDistance.Value);
 
-            ThirdPersonHUD.Log.LogInfo($"Orbit camera override applied: anchor={offset}, dist={ThirdPersonHUD.OrbitDistance.Value}");
+            logCounter++;
+            if (logCounter % 60 == 0)
+            {
+                var cam = Camera.main;
+                var curFollow = followVectorField?.GetValue(__instance);
+                var curDist = viewDistAdjustField?.GetValue(__instance);
+                ThirdPersonHUD.Log.LogInfo($"Orbit override — set: anchor={offset} dist={ThirdPersonHUD.OrbitDistance.Value} | actual: followVector={curFollow} viewDistAdjust={curDist} | camPos={cam?.transform.position} camFwd={cam?.transform.forward}");
+            }
         }
     }
 
