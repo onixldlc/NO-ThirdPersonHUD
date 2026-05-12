@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using Mirage;
 using System.Linq;
+using System.Reflection;
 
 namespace ThirdPersonHUD
 {
@@ -23,6 +24,11 @@ namespace ThirdPersonHUD
         private const string CurrentConfigVersion = "c1.0";
         public static ConfigEntry<bool> Enabled { get; set; }
         public static ConfigEntry<bool> OrbitPitchLadderHidden { get; set; }
+        public static ConfigEntry<bool> OrbitUseChasePosition { get; set; }
+        public static ConfigEntry<float> OrbitAnchorOffsetX { get; set; }
+        public static ConfigEntry<float> OrbitAnchorOffsetY { get; set; }
+        public static ConfigEntry<float> OrbitAnchorOffsetZ { get; set; }
+        public static ConfigEntry<float> OrbitDistance { get; set; }
 
         // Variables
         public static string currentCameraMode = "";
@@ -56,6 +62,51 @@ namespace ThirdPersonHUD
                 defaultValue: true,
                 configDescription: new ConfigDescription(
                     "If true, the pitch ladder will be hidden when in orbit/chase."
+                )
+            );
+
+            OrbitUseChasePosition = Config.Bind(
+                section: "OrbitCamera",
+                key: "UseChasePosition",
+                defaultValue: false,
+                configDescription: new ConfigDescription(
+                    "If true, orbit camera will use chase-style anchor position."
+                )
+            );
+
+            OrbitAnchorOffsetX = Config.Bind(
+                section: "OrbitCamera",
+                key: "AnchorOffsetX",
+                defaultValue: 0f,
+                configDescription: new ConfigDescription(
+                    "Orbit anchor X offset (left/right)."
+                )
+            );
+
+            OrbitAnchorOffsetY = Config.Bind(
+                section: "OrbitCamera",
+                key: "AnchorOffsetY",
+                defaultValue: 2f,
+                configDescription: new ConfigDescription(
+                    "Orbit anchor Y offset (up/down)."
+                )
+            );
+
+            OrbitAnchorOffsetZ = Config.Bind(
+                section: "OrbitCamera",
+                key: "AnchorOffsetZ",
+                defaultValue: -8f,
+                configDescription: new ConfigDescription(
+                    "Orbit anchor Z offset (forward/back). Negative = behind."
+                )
+            );
+
+            OrbitDistance = Config.Bind(
+                section: "OrbitCamera",
+                key: "OrbitDistance",
+                defaultValue: 10f,
+                configDescription: new ConfigDescription(
+                    "Distance from orbit anchor to camera."
                 )
             );
 
@@ -237,6 +288,32 @@ namespace ThirdPersonHUD
             if (!ThirdPersonHUD.Enabled.Value)
                 return;
             ThirdPersonHUD.isSpectating = false;
+        }
+    }
+
+    [HarmonyPatch(typeof(CameraOrbitState), nameof(CameraOrbitState.EnterState))]
+    internal static class CameraOrbitState_EnterState_Patch
+    {
+        private static readonly FieldInfo followVectorField =
+            typeof(CameraOrbitState).GetField("followVector", BindingFlags.NonPublic | BindingFlags.Instance);
+        private static readonly FieldInfo viewDistAdjustField =
+            typeof(CameraOrbitState).GetField("viewDistAdjust", BindingFlags.NonPublic | BindingFlags.Instance);
+
+        static void Postfix(CameraOrbitState __instance)
+        {
+            if (!ThirdPersonHUD.Enabled.Value || !ThirdPersonHUD.OrbitUseChasePosition.Value)
+                return;
+
+            var offset = new Vector3(
+                ThirdPersonHUD.OrbitAnchorOffsetX.Value,
+                ThirdPersonHUD.OrbitAnchorOffsetY.Value,
+                ThirdPersonHUD.OrbitAnchorOffsetZ.Value
+            );
+
+            followVectorField?.SetValue(__instance, offset);
+            viewDistAdjustField?.SetValue(__instance, ThirdPersonHUD.OrbitDistance.Value);
+
+            ThirdPersonHUD.Log.LogInfo($"Orbit camera override: anchor={offset}, dist={ThirdPersonHUD.OrbitDistance.Value}");
         }
     }
 

@@ -60,6 +60,12 @@ public class CameraCockpitState : CameraBaseState
 
 public class CameraOrbitState : CameraBaseState
 {
+    private Vector3 followVector;
+    private float viewDistAdjust;
+    private float followingMaxRadius;
+    private float panView;
+    private float tiltView;
+
     public override void EnterState(CameraStateManager cam) { }
     public override void LeaveState(CameraStateManager cam) { }
     public override void UpdateState(CameraStateManager cam) { }
@@ -84,6 +90,9 @@ public class CameraFreeState : CameraBaseState
 
 public class CameraChaseState : CameraBaseState
 {
+    private float orbitDist;
+    private Vector3 posVector;
+
     public override void EnterState(CameraStateManager cam) { }
     public override void LeaveState(CameraStateManager cam) { }
     public override void UpdateState(CameraStateManager cam) { }
@@ -106,6 +115,11 @@ public class CameraStateManager : SceneSingleton<CameraStateManager>
     public CameraCockpitState cockpitState;
     public CameraChaseState chaseState;
     public CameraControlledState controlledState;
+
+    [System.NonSerialized]
+    public Transform cameraPivot;
+
+    public Unit followingUnit;
 
     public void SwitchState(CameraBaseState state)
         => throw new System.NotImplementedException("Stub");
