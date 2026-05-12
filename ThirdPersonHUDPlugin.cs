@@ -317,8 +317,8 @@ namespace ThirdPersonHUD
         }
     }
 
-    [HarmonyPatch(typeof(CameraOrbitState), "LateUpdate")]
-    internal static class CameraOrbitState_LateUpdate_Patch
+    [HarmonyPatch(typeof(CameraStateManager), "LateUpdate")]
+    internal static class CameraStateManager_LateUpdate_Patch
     {
         private static readonly FieldInfo followVectorField =
             typeof(CameraOrbitState).GetField("followVector", BindingFlags.NonPublic | BindingFlags.Instance);
@@ -327,9 +327,16 @@ namespace ThirdPersonHUD
 
         private static int logCounter = 0;
 
-        static void Postfix(CameraOrbitState __instance)
+        static void Postfix(CameraStateManager __instance)
         {
             if (!ThirdPersonHUD.Enabled.Value || !ThirdPersonHUD.OrbitUseChasePosition.Value)
+                return;
+
+            if (ThirdPersonHUD.currentCameraMode != "orbit")
+                return;
+
+            var orbitState = __instance.orbitState;
+            if (orbitState == null)
                 return;
 
             var offset = new Vector3(
@@ -338,15 +345,15 @@ namespace ThirdPersonHUD
                 ThirdPersonHUD.OrbitAnchorOffsetZ.Value
             );
 
-            followVectorField?.SetValue(__instance, offset);
-            viewDistAdjustField?.SetValue(__instance, ThirdPersonHUD.OrbitDistance.Value);
+            followVectorField?.SetValue(orbitState, offset);
+            viewDistAdjustField?.SetValue(orbitState, ThirdPersonHUD.OrbitDistance.Value);
 
             logCounter++;
             if (logCounter % 60 == 0)
             {
                 var cam = Camera.main;
-                var curFollow = followVectorField?.GetValue(__instance);
-                var curDist = viewDistAdjustField?.GetValue(__instance);
+                var curFollow = followVectorField?.GetValue(orbitState);
+                var curDist = viewDistAdjustField?.GetValue(orbitState);
                 ThirdPersonHUD.Log.LogInfo($"Orbit override — set: anchor={offset} dist={ThirdPersonHUD.OrbitDistance.Value} | actual: followVector={curFollow} viewDistAdjust={curDist} | camPos={cam?.transform.position} camFwd={cam?.transform.forward}");
             }
         }
